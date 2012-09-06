@@ -1,0 +1,28 @@
+GPlus-mode - Google+ in Emacs
+
+This is just a quick and dirty major mode for reading activity streams
+from Google+ from Emacs. The code as is still needs a lot of work and 
+there are bugs that haven't been fixed yet. 
+
+To install put gplus-mode.el in your load-path and set your api key and 
+profile id. The api key can be obtain from https://code.google.com/apis/console.
+The profile id is the last part of the Google+ profile address. For example
+the FreeBSD Google+ page is https://plus.google.com/111985137075069724005 so
+the profile id is 111985137075069724005. 
+
+(require 'gplus-mode)
+(setq gplus-api-key "yourapikeyhere")
+(setq gplus-my-profile-id "yourprofileidhere")
+
+Your accound should be loaded start it with 'M-x gplus'. 
+
+Usage:
+
+C-c a: Switch to the activity buffer
+C-c q: Switch to the query buffer
+C-c r: Refresh
+C-c s: Search profiles
+
+As I already said it still needs lots of work and a bunch of bugs and issues to 
+be worked out. This is mostly for testing right now as the Google+ API is fairly 
+limited. 
