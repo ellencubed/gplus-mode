@@ -46,6 +46,7 @@
 (defvar gplus-last-query nil)
 (defvar gplus-last-type nil)
 
+(defvar gplus-images-enabled nil)
 (defvar gplus-temp-icon nil)
 
 (defun gplus-arg-list (&rest rest-var)
@@ -106,10 +107,10 @@
 	  (erase-buffer)
 	  (setq results (append (plist-get gplus-data-search :items) nil))
 	  (if (not (equal nil results))
-		(progn 
-		  (insert (format "Results for search: %s\n\n" gplus-last-query))
-		  (dolist (element (append (plist-get gplus-data-search :items) nil) value)
-			(gplus-render-result element)))
+		  (progn 
+			(insert (format "Results for search: %s\n\n" gplus-last-query))
+			(dolist (element (append (plist-get gplus-data-search :items) nil) value)
+			  (gplus-render-result element)))
 		(insert (format "No search results for: %s" gplus-last-query)))
 	  (goto-char (point-min)))))
 
@@ -117,19 +118,20 @@
   "Render a single search result R"
   (let ((name (plist-get r :displayName))
 		(url (plist-get r :url)))
-
-  (setq gplus-temp-icon (create-image (url-file-local-copy (plist-get (plist-get r :image) :url))))
-
-  (if (not (equal gplus-temp-icon nil))
-	  (progn
-		(insert-image gplus-temp-icon)
-		(insert (format "\n"))))
-  (insert (propertize
-		   (format "%s " name)
-		   'font-lock-face '(:foreground "red")))
-  (insert (propertize
-		   (format "[%s]\n" url)
-		   'font-lock-face 'bold-italic))))
+	(if gplus-images-enabled
+		(progn
+		  (setq gplus-temp-icon (create-image (url-file-local-copy (plist-get (plist-get r :image) :url))))
+	
+		  (if gplus-temp-icon
+			  (progn
+				(insert-image gplus-temp-icon)
+				(insert (format "\n"))))))
+	(insert (propertize
+			 (format "%s " name)
+			 'font-lock-face '(:foreground "red")))
+	(insert (propertize
+			 (format "[%s]\n" url)
+			 'font-lock-face 'bold-italic))))
 
 (defun gplus-feed-refresh (url type)
   "Load data from feed URL into data set for TYPE"
@@ -181,7 +183,8 @@
 	  (gplus-new-buffer 'activity))
 	(with-current-buffer (get-buffer (gplus-buffer-name 'activity))
 	  (erase-buffer)
-	  (gplus-load-icon)
+	  (if gplus-images-enabled
+		  (gplus-load-icon))
 	  (dolist (element (append (plist-get gplus-data-activities :items) nil) value)
 		(gplus-render-post element))
 	  (html2text)
@@ -196,11 +199,13 @@
 	(insert (propertize 
 			 (format "%s\n\n" name) 
 			 'font-lock-face '(:foreground "yellow")))
-	(if gplus-temp-icon
+	(if gplus-images-enabled
 		(progn
-		  (insert-image gplus-temp-icon)
-		  (insert (format "\n\n"))))
-	  (insert (propertize 
+		  (if gplus-temp-icon
+			  (progn
+				(insert-image gplus-temp-icon)
+				(insert (format "\n\n"))))))
+	(insert (propertize 
 			 (format "%s\n\n" content)
 			 'font-lock-face 'bold-italic))))
 
@@ -225,13 +230,13 @@
   (interactive)
   (if (equal gplus-last-type 'activity)
 	  (progn
-		(setq gplus-temp-icon (create-image
+		(setq gplus-temp-icon (create-image 
 							   (url-file-local-copy
+								(plist-get 
 								 (plist-get 
 								  (plist-get 
-								   (plist-get 
-									(car 
-									 (append (plist-get gplus-data-activities :items) nil)) :actor) :image) :url)))))
+								   (car 
+									(append (plist-get gplus-data-activities :items) nil)) :actor) :image) :url)))))
 	(setq gplus-temp-icon nil)))
 
 (when (not gplus-mode-map)
